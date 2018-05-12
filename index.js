@@ -3,6 +3,7 @@ const config = require('./config');
 const Imap = require('imap'),
     inspect = require('util').inspect;
 var fs = require('fs'), fileStream;
+const simpleParser = require('mailparser').simpleParser;
 
 const app = express();
 
@@ -23,7 +24,21 @@ const messageHandler = (msg, seqno) => {
     const prefix = '(#' + seqno + ') ';
     msg.on('body', function(stream, info) {
         console.log(prefix + 'Body');
-        stream.pipe(fs.createWriteStream('msg-' + seqno + '-body.txt'));
+        // stream.pipe(fs.createWriteStream('msg-' + seqno + '-body.txt'));
+        simpleParser(stream)
+            .then(mail => {
+                console.log(mail.html);
+                fs.writeFile('msg-' + seqno + '-body.html', mail.html, function(err) {
+                    if(err) {
+                        return console.log(err);
+                    }
+
+                    console.log("The file was saved!");
+                });
+            })
+            .catch(err => {
+                console.error(err)
+            })
     });
     msg.once('attributes', function(attrs) {
         console.log(prefix + 'Attributes: %s', inspect(attrs, false, 8));
