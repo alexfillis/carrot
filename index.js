@@ -21,27 +21,14 @@ const imap = new Imap({
 const messageHandler = (msg, seqno) => {
     console.log('Message #%d', seqno);
     const prefix = '(#' + seqno + ') ';
-    msg.on('body', function (stream, info) {
-        if (info.which === 'TEXT')
-            console.log(prefix + 'Body [%s] found, %d total bytes', inspect(info.which), info.size);
-        let buffer = '', count = 0;
-        stream.on('data', function (chunk) {
-            count += chunk.length;
-            buffer += chunk.toString('utf8');
-            if (info.which === 'TEXT')
-                console.log(prefix + 'Body [%s] (%d/%d)', inspect(info.which), count, info.size);
-        });
-        stream.once('end', function () {
-            if (info.which !== 'TEXT')
-                console.log(prefix + 'Parsed header: %s', inspect(Imap.parseHeader(buffer)));
-            else
-                console.log(prefix + 'Body [%s] Finished', inspect(info.which));
-        });
+    msg.on('body', function(stream, info) {
+        console.log(prefix + 'Body');
+        stream.pipe(fs.createWriteStream('msg-' + seqno + '-body.txt'));
     });
-    msg.once('attributes', function (attrs) {
+    msg.once('attributes', function(attrs) {
         console.log(prefix + 'Attributes: %s', inspect(attrs, false, 8));
     });
-    msg.once('end', function () {
+    msg.once('end', function() {
         console.log(prefix + 'Finished');
     });
 };
@@ -60,27 +47,9 @@ const openHandler = (err, box) => {
     imap.search([ 'UNSEEN', ['SINCE', 'May 20, 2010'] ], function(err, results) {
         if (err) throw err;
         var f = imap.fetch(results, { bodies: '' });
-        f.on('message', function(msg, seqno) {
-            console.log('Message #%d', seqno);
-            var prefix = '(#' + seqno + ') ';
-            msg.on('body', function(stream, info) {
-                console.log(prefix + 'Body');
-                stream.pipe(fs.createWriteStream('msg-' + seqno + '-body.txt'));
-            });
-            msg.once('attributes', function(attrs) {
-                console.log(prefix + 'Attributes: %s', inspect(attrs, false, 8));
-            });
-            msg.once('end', function() {
-                console.log(prefix + 'Finished');
-            });
-        });
-        f.once('error', function(err) {
-            console.log('Fetch error: ' + err);
-        });
-        f.once('end', function() {
-            console.log('Done fetching all messages!');
-            imap.end();
-        });
+        f.on('message', messageHandler);
+        f.once('error', errorHandler);
+        f.once('end', endHandler);
     });
 };
 
