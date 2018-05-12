@@ -1,4 +1,5 @@
 const express = require('express');
+const config = require('./config');
 var Imap = require('imap'),
     inspect = require('util').inspect;
 
@@ -9,11 +10,11 @@ app.get('/', (req, res) => res.send('Hello World!'));
 app.listen(3000, () => console.log('Example app listening on port 3000!'));
 
 var imap = new Imap({
-    user: 'mygmailname@gmail.com',
-    password: 'mygmailpassword',
-    host: 'imap.gmail.com',
-    port: 993,
-    tls: true
+    user: config.imap.user.name,
+    password: config.imap.user.password,
+    host: config.imap.host.name,
+    port: config.imap.host.port,
+    tls: config.imap.host.secure
 });
 
 function openInbox(cb) {
