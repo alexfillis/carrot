@@ -24,7 +24,6 @@ const messageHandler = (msg, seqno) => {
     const prefix = '(#' + seqno + ') ';
     msg.on('body', function(stream, info) {
         console.log(prefix + 'Body');
-        // stream.pipe(fs.createWriteStream('msg-' + seqno + '-body.txt'));
         simpleParser(stream)
             .then(mail => {
                 console.log(mail.html);
