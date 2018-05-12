@@ -1,6 +1,6 @@
 const express = require('express');
 const config = require('./config');
-var Imap = require('imap'),
+const Imap = require('imap'),
     inspect = require('util').inspect;
 
 const app = express();
@@ -9,7 +9,7 @@ app.get('/', (req, res) => res.send('Hello World!'));
 
 app.listen(3000, () => console.log('Example app listening on port 3000!'));
 
-var imap = new Imap({
+const imap = new Imap({
     user: config.imap.user.name,
     password: config.imap.user.password,
     host: config.imap.host.name,
@@ -19,11 +19,11 @@ var imap = new Imap({
 
 const messageHandler = (msg, seqno) => {
     console.log('Message #%d', seqno);
-    var prefix = '(#' + seqno + ') ';
+    const prefix = '(#' + seqno + ') ';
     msg.on('body', function (stream, info) {
         if (info.which === 'TEXT')
             console.log(prefix + 'Body [%s] found, %d total bytes', inspect(info.which), info.size);
-        var buffer = '', count = 0;
+        let buffer = '', count = 0;
         stream.on('data', function (chunk) {
             count += chunk.length;
             buffer += chunk.toString('utf8');
@@ -56,7 +56,7 @@ const endHandler = () => {
 
 const openHandler = (err, box) => {
     if (err) throw err;
-    var f = imap.seq.fetch(box.messages.total + ':*', {bodies: ['HEADER.FIELDS (FROM)', 'TEXT']});
+    const f = imap.seq.fetch(box.messages.total + ':*', {bodies: ['HEADER.FIELDS (FROM)', 'TEXT']});
     f.on('message', messageHandler);
     f.once('error', errorHandler);
     f.once('end', endHandler);
