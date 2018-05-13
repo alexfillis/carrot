@@ -7,7 +7,28 @@ const simpleParser = require('mailparser').simpleParser;
 
 const app = express();
 
+app.set('views', './');
+app.set('view engine', 'pug');
+
 app.get('/', (req, res) => res.send('Hello World!'));
+
+app.get('/reports/gmail', function (req, res) {
+    fs.readFile('./msg-1-body.html', (err, data) => {
+        if (err) {
+            throw err;
+        }
+        res.render('report-template', { title: 'Hey', message: 'Hello there!' })
+    });
+});
+
+app.get('/reports/carrot', function (req, res) {
+    fs.readFile('./msg-2-body.html', (err, data) => {
+        if (err) {
+            throw err;
+        }
+        res.render('report-template', { title: 'Hey', filename: './msg-2-body.html' })
+    });
+});
 
 app.listen(3000, () => console.log('Example app listening on port 3000!'));
 
